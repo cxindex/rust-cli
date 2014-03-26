@@ -64,7 +64,7 @@ func main() {
 		if id != 0 { //empty anyway
 			response = strings.Trim(response, "\n")
 			if *listen && !status.MatchString(response) { //strip status flood
-				fmt.Println(response)
+				log.Println(response)
 			}
 			if !*listen {
 				fmt.Println(response)
