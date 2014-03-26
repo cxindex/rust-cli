@@ -45,6 +45,8 @@ func main() {
 	flag.Parse()
 	flag.VisitAll(check)
 
+	listenLogger := log.New(os.Stdout,"", log.LstdFlags)
+
 	s, err := rcon.Dial(*server+":"+*port, *pass)
 	if err != nil {
 		log.Fatalln(err)
@@ -64,7 +66,7 @@ func main() {
 		if id != 0 { //empty anyway
 			response = strings.Trim(response, "\n")
 			if *listen && !status.MatchString(response) { //strip status flood
-				log.Println(response)
+				listenLogger.Println(response)
 			}
 			if !*listen {
 				fmt.Println(response)
