@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 )
 
 func check(f *flag.Flag) {
@@ -33,8 +34,7 @@ func main() {
 	dir, _ := filepath.Split(l)
 
 	opts := globalconf.Options{Filename: dir + "rcon.conf"}
-	conf, err := globalconf.NewWithOptions(&opts)
-	if err != nil {
+	if conf, err := globalconf.NewWithOptions(&opts); err != nil {
 		if err, ok := err.(*os.PathError); !ok {
 			log.Fatalln(err)
 		}
@@ -45,11 +45,16 @@ func main() {
 	flag.Parse()
 	flag.VisitAll(check)
 
-	listenLogger := log.New(os.Stdout,"", log.LstdFlags)
-
+	listenLogger := log.New(os.Stdout, "", log.LstdFlags)
+start:
 	s, err := rcon.Dial(*server+":"+*port, *pass)
 	if err != nil {
-		log.Fatalln(err)
+		log.Println(err)
+		if !*listen {
+			os.Exit(1)
+		}
+		time.Sleep(5 * time.Second)
+		goto start
 	}
 	defer s.Close()
 
@@ -61,7 +66,11 @@ func main() {
 	for {
 		response, id, err := s.Read()
 		if err != nil {
-			log.Fatalln(err)
+			log.Println(err)
+			if !*listen {
+				os.Exit(1)
+			}
+			goto start
 		}
 		if id != 0 { //empty anyway
 			response = strings.Trim(response, "\n")
